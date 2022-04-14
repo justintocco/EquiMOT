@@ -30,3 +30,5 @@ Specifically, the following 5 videos are used:
   * video_0001.mp4
 
 To download this subset of videos, run script `download_subset.sh` from _within the PIE directory_.
+
+To extract frames from the videos, use `subset_to_frames.sh`. Each video is 30fps by default. The `FPS` parameter at the top can be modified how how often to extract  frames, but is not recommended since the frame_id scheme might no longer be in sync.
