@@ -16,6 +16,7 @@ if [ ! -d ./PIE_clips ]; then
   mkdir -p ./PIE_clips/set03;
   mkdir -p ./PIE_clips/set04;
   mkdir -p ./PIE_clips/set05;
+  mkdir -p ./PIE_clips/set06;
 else
   echo "Error: clips directory already exists. Remove directory and retry."
   exit

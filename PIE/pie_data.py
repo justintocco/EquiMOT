@@ -36,7 +36,7 @@ import numpy as np
 
 from os.path import join, abspath, isfile, isdir
 from os import makedirs, listdir
-from sklearn.model_selection import train_test_split, KFold
+#from sklearn.model_selection import train_test_split, KFold
 
 
 class PIE(object):
