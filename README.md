@@ -36,4 +36,4 @@ To extract frames from the videos, use `subset_to_frames.sh`. Each video is 30fp
 
 <a name="generate"></a>
 # Generate .pkl Annotation Dictionary
-Run `data_loader.py` to generate the EquiMOT-compatible version of the PIE database. The `.pkl` dictionary file will be cached and should only need to be generated once.
+Run `data_loader.py` to generate the EquiMOT-compatible version of PIE annotations. The `.pkl` dictionary file will be cached and should only need to be generated once.
