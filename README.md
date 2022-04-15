@@ -7,6 +7,7 @@ Authors: Justin Tocco, Jacob Slimak, Carlos Cardenas, Jett Li
 ### Table of contents
 * [Project Overview](#overview)
 * [Downloading Videos/Images](#download)
+* [Generate .pkl Annotation Dictionary](#generate)
 
 <a name="overview"></a>
 # Project Overview
@@ -31,4 +32,8 @@ Specifically, the following 5 videos are used:
 
 To download this subset of videos, run script `download_subset.sh` from _within the PIE directory_.
 
-To extract frames from the videos, use `subset_to_frames.sh`. Each video is 30fps by default. The `FPS` parameter at the top can be modified how how often to extract  frames, but is not recommended since the frame_id scheme might no longer be in sync.
+To extract frames from the videos, use `subset_to_frames.sh`. Each video is 30fps by default. The `ffmpeg_fps` parameter in `config.json` modifies how often to extract frames (be careful about PIE frame_id scheme being out of sync with image naming scheme).
+
+<a name="generate"></a>
+# Generate .pkl Annotation Dictionary
+Run `data_loader.py` to generate the EquiMOT-compatible version of the PIE database. The `.pkl` dictionary file will be cached and should only need to be generated once.
