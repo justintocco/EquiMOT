@@ -54,4 +54,4 @@ Run `data_loader.py` to generate the EquiMOT-compatible version of PIE annotatio
       }
  }
 ```
-The options for `class` attribute are 'pedestrian', 'vehicle', 'traffic_light', 'sign', 'crosswalk', or 'transit_station'.
+The options for `class` attribute are 'pedestrian', 'vehicle', 'traffic_light', 'sign', or 'crosswalk'.
