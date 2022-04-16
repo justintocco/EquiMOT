@@ -2,8 +2,6 @@
 
 Authors: Justin Tocco, Jacob Slimak, Carlos Cardenas, Jett Li
 
-**Download links for videos:** [YorkU server](http://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/) or [Dropbox](https://www.dropbox.com/sh/1th9hjcrce8sof1/AADKIF9itB7KmRvgH4iQxvCpa?dl=0)
-
 ### Table of contents
 * [Project Overview](#overview)
 * [Downloading Videos/Images](#download)
@@ -36,4 +34,24 @@ To extract frames from the videos, use `subset_to_frames.sh`. Each video is 30fp
 
 <a name="generate"></a>
 # Generate .pkl Annotation Dictionary
-Run `data_loader.py` to generate the EquiMOT-compatible version of PIE annotations. The `.pkl` dictionary file will be cached and should only need to be generated once.
+Run `data_loader.py` to generate the EquiMOT-compatible version of PIE annotations. The `.pkl` dictionary file will be cached and should only need to be generated once. The dictionary structure is below:
+
+```
+'set_id'(str): {
+     'vid_id'(str): {
+          'frame_id'(str): {
+                list: [
+                     'bbox': [x1, y1, x2, y2] (float),
+                     'class': str,
+                     'uid': str,
+                ],
+                [
+                     'bbox': [x1, y1, x2, y2] (float),
+                     'class': str, 
+                     'uid': str,
+                ], ...
+           }
+      }
+ }
+```
+The options for `class` attribute are 'pedestrian', 'vehicle', 'traffic_light', 'sign', 'crosswalk', or 'transit_station'.
