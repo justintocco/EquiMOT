@@ -126,3 +126,5 @@ def DataParallel(module, device_ids=None, output_device=None, dim=0, chunk_sizes
     if standard_size:
         return torch.nn.DataParallel(module, device_ids, output_device, dim)
     return _DataParallel(module, device_ids, output_device, dim, chunk_sizes)
+
+#Sourced from FairMOT: https://github.com/ifzhang/FairMOT
