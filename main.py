@@ -15,10 +15,10 @@ else:
 
 name = 'starter_net'
 net = model.Net().to(device)
-criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss() # this will be the loss we create using the parallel heads for tracking and detection
 
 # Define the dataset and dataloder
-train_data = #TODO 
+train_data = #TODO
 val_data =  #TODO
 test_data = #TODO
 

@@ -38,7 +38,7 @@ One example of designing such model inspired by U-Net [1] is:
 9. Convolutional block with several Conv-ReLU layers with #channel C to N_CLASS
 """
 
-N_CLASS = 5 # will need changing
+N_CLASS = 5 # MAY (not) need changing
 
 class Net(nn.Module):
     def __init__(self):
