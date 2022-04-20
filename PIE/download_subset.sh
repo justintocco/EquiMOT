@@ -22,10 +22,10 @@ else
   exit
 fi
 
-wget -N --recursive --no-parent -nH --cut-dirs=1 -R "index.html*" https://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/set01/video_0001.mp4 ./PIE_clips/set01
-wget -N --recursive --no-parent -nH --cut-dirs=1 -R "index.html*" https://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/set02/video_0001.mp4 ./PIE_clips/set02
-wget -N --recursive --no-parent -nH --cut-dirs=1 -R "index.html*" https://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/set03/video_0004.mp4 ./PIE_clips/set03
-wget -N --recursive --no-parent -nH --cut-dirs=1 -R "index.html*" https://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/set04/video_0005.mp4 ./PIE_clips/set04
+wget -N --recursive --no-parent -nH --cut-dirs=1 -R "index.html*" https://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/set01/video_0003.mp4 ./PIE_clips/set01
+wget -N --recursive --no-parent -nH --cut-dirs=1 -R "index.html*" https://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/set02/video_0002.mp4 ./PIE_clips/set02
+wget -N --recursive --no-parent -nH --cut-dirs=1 -R "index.html*" https://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/set03/video_0003.mp4 ./PIE_clips/set03
+wget -N --recursive --no-parent -nH --cut-dirs=1 -R "index.html*" https://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/set04/video_0012.mp4 ./PIE_clips/set04
 wget -N --recursive --no-parent -nH --cut-dirs=1 -R "index.html*" https://data.nvision2.eecs.yorku.ca/PIE_dataset/PIE_clips/set05/video_0001.mp4 ./PIE_clips/set05
 
 echo "Download successful."
