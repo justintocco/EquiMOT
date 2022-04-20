@@ -1,3 +1,5 @@
+#Sourced from FairMOT: https://github.com/ifzhang/FairMOT
+
 import torch
 from torch.autograd import Variable
 from torch.nn.parallel._functions import Scatter, Gather
@@ -36,5 +38,3 @@ def scatter_kwargs(inputs, kwargs, target_gpus, dim=0, chunk_sizes=None):
     inputs = tuple(inputs)
     kwargs = tuple(kwargs)
     return inputs, kwargs
-
-#Sourced from FairMOT: https://github.com/ifzhang/FairMOT

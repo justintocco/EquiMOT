@@ -1,3 +1,5 @@
+#Sourced from FairMOT: https://github.com/ifzhang/FairMOT
+
 import torch
 from torch.nn.modules import Module
 from torch.nn.parallel.scatter_gather import gather
