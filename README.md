@@ -55,3 +55,19 @@ Run `data_loader.py` to generate the EquiMOT-compatible version of PIE annotatio
  }
 ```
 The options for `class` attribute are 'pedestrian', 'vehicle', 'traffic_light', 'sign', or 'crosswalk'.
+
+To import the `small_dataset.pkl` into a dictionary `db` (assuming your file is in the base `EquiMot/` directory), run the following:
+
+```
+cache_file = 'small_database.pkl'
+db = {}
+if isfile(cache_file):
+    with open(cache_file, 'rb') as fid:
+        try:
+            db = pickle.load(fid)
+        except:
+            db = pickle.load(fid, encoding='bytes')
+    print('EquiMOT annotations loaded from {}'.format(cache_file))
+else:
+    print('Cached .pkl file not found! Could not load database.')
+```
