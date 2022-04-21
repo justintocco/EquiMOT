@@ -7,17 +7,44 @@ from PIL import Image
 from torchvision import datasets, models, transforms
 from torch.utils.data.dataset import Dataset
 import json
+import pickle
+from data_organizer import organize
 
 class EquiDataset(Dataset):
     """Custom Dataset for loading into PIE data into EquiMOT."""
-    def __init__(self, 
-                file,root_dir,transform=None):
+    def __init__(self, pkl_file, transform=None):
+        print("Initializing Database... this may take a while.")
         super().__init__()
+        organize()
+        pkl_file = open(pkl_file,'rb')
+        self.pickle_db = pickle.load(pkl_file)
+        pkl_file.close()
+        self.root_name = "processed_images"
+        self.root_dir = os.listdir("processed_images")
+        self.transform = transform
+        #breakpoint()
+        self.dataset = [np.array(Image.open(os.path.join(self.root_name, img))) 
+                     for img in self.root_dir]
+        count = 0
+        for img in self.dataset:
+            idx_tup = ('set' + str(img[1:2]),'video_' + str(img[7:10]),str(img[13:-4]))
+            print(idx_tup)
+            found = False
+            if idx_tup[0] in self.pickle_db:
+                if idx_tup[1] in self.pickle_db[idx_tup[0]]:
+                    if idx_tup[2] in self.pickle_db[idx_tup[0]][idx_tup[1]]:
+                        found = True
+                        
+            if not found:
+                #os.remove(os.path.join(self.root_dir, img))
+                print("No Ground Truth for %s",img)
+                count += 1
+        print("Dataset Initiated:")
+        print("Annotated frames: ", len(self.dataset) - count)
+        print("Deleted frames: ", count)
+        print("Dataset Size: ", len(self.dataset))
         
-        self.dataset = [np.array(Image.open(os.path.join(root_dir, img))) 
-                     for img in self.img_list]
         
-       
         """
         self.img_list = [data[0] for data in self.dataset]
         self.mask_list = [data[1] for data in self.dataset]
@@ -40,8 +67,8 @@ class EquiDataset(Dataset):
     
     #Needs updating
     def __getitem__(self, idx):
-        img = torch.FloatTensor(self.imgs[idx]).permute(2, 0, 1)
-        qmask = torch.LongTensor(self.q_masks[idx])[None, :, :]
+        img = torch.FloatTensor(self.dataset[idx]).permute(2, 0, 1)
+        annotations = torch.LongTensor(self.q_masks[idx])[None, :, :]
         qmask = self.transform(qmask).squeeze()
         if self.one_hot:
             H, W = qmask.shape

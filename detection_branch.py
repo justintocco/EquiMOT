@@ -33,13 +33,13 @@ This result is what feeds into the detection (as well as Re-ID) branch.
 
 class detection_branch(nn.Module):
     def __init__(self):
-        pass
+        self.C = 256
 
 
     """Each head is implemented by applying a 3 * 3 convolution (with 256 channels) to the output features of DLA-34, 
     followed by a 1 * 1 convolutional layer which generates the final targets." - 4.2 """
 
-    self.first_conv_layer = nn.Conv2d(C, 256, 3)
+    self.first_conv_layer = nn.Conv2d(self.C, 256, 3)
     self.second_conv_layer = nn.Conv2d(256, 256, 1)
 
 

@@ -5,6 +5,8 @@ import torch.nn as nn
 import model
 import data_loader as dl
 from torch.utils.data import DataLoader
+from torchvision.transforms import transforms
+from EquiDataset import EquiDataset
 
 if torch.cuda.is_available():
     print("Using the GPU.")
@@ -16,11 +18,12 @@ else:
 name = 'starter_net'
 net = model.Net().to(device)
 criterion = nn.CrossEntropyLoss() # this will be the loss we create using the parallel heads for tracking and detection
-
+#breakpoint()
 # Define the dataset and dataloder
-train_data = #TODO
-val_data =  #TODO
-test_data = #TODO
+dataset = EquiDataset(pkl_file = 'small_database.pkl',transform=transforms.ToTensor())
+train_data = None
+val_data =  None
+test_data = None
 
 train_loader = DataLoader(train_data, batch_size=16)
 val_loader = DataLoader(val_data, batch_size=8)

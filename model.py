@@ -54,10 +54,10 @@ class Net(nn.Module):
         self.conv2 = nn.Conv2d(4,32,3,padding=1,stride=1)
         self.conv25 = nn.Conv2d(32,128,3,padding=1,stride=1)
         self.conv3 = nn.Conv2d(128,128,3,padding=1,stride=1)
-        self.convTrans05 = nn.ConvTranspose2d(128,32,3,padding=1,stride=1)
+        self.convTrans05 = nn.ConvTranspose2d(128,32,3,padding=0,stride=2)
         self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
-        self.convTrans1 = nn.ConvTranspose2d(32,4,3,padding=1,stride=1)
-        self.convTrans2 = nn.ConvTranspose2d(4,self.n_class,3,padding=1,stride=1)
+        self.convTrans1 = nn.ConvTranspose2d(32,8,3,padding=0,stride=2) #TODO: FIGURE OUT TRUE N_CLASS? (HOW TO FIND?)
+        self.convTrans2 = nn.ConvTranspose2d(8,self.n_class,3,padding=0,stride=2)
         self.drop = nn.Dropout(p=0.05)
         ########################################################################
         #                             END OF YOUR CODE                         #
@@ -83,6 +83,7 @@ class Net(nn.Module):
         ########################################################################
         return x
 
+"""
 #maybe move this code to init
 # Initialize model
 name = 'starter_net'
@@ -90,7 +91,7 @@ net = Net().to(device)
 # visualizing the model
 print('Your network:')
 summary(net, (3,112,112), device=device)
-
+"""
 
 
 #Train model
