@@ -7,6 +7,10 @@ def main():
     model = pie.PIE(regen_database=False, data_path='./PIE')
     db = model.generate_database()
 
+    print('-------------------------------------------------------')
+    print("Annotated frames for set01/video_0003:")
+    print(model.get_annotated_frame_numbers('set01')['video_0003'])
+
     small_db = {}
     for set_id in db:
         small_db[set_id] = {}
