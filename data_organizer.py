@@ -19,10 +19,15 @@ def organize():
         "05": "01"
     }
     for set_ in sets:
+        if set_.startswith('.DS_Store'):
+            continue
         path = set_path + set_ + "/"
+        #breakpoint()
         video_dir = os.listdir(path)
         set_name = set_
         for video in video_dir:
+            if video.startswith('.DS_Store'):
+                continue
             video_path = path + video + "/"
             imgs = os.listdir(video_path)
             if len(imgs) == 0:
@@ -35,7 +40,7 @@ def organize():
                 #breakpoint()
                 number = set_name[3:5]
                 #breakpoint()
-                old_dest = video_path + "/" + orig_img
+                old_dest = video_path + orig_img
                 new_dest = "/s{}_vid00{}_f".format(number, naming[number])
                 os.rename(video_path + "/" + orig_img, new_dir + new_dest + str(img) +".png")
 

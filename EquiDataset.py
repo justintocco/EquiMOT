@@ -23,21 +23,24 @@ class EquiDataset(Dataset):
         self.root_dir = os.listdir("processed_images")
         self.transform = transform
         #breakpoint()
-        self.dataset = [np.array(Image.open(os.path.join(self.root_name, img))) 
-                     for img in self.root_dir]
+        print("before dataset")
+        self.dataset = []
         count = 0
-        for img in self.dataset:
-            idx_tup = ('set' + str(img[1:2]),'video_' + str(img[7:10]),str(img[13:-4]))
-            print(idx_tup)
+        print("before for loop")
+        for img in self.root_dir:
+            self.dataset.append(np.array(Image.open(os.path.join(self.root_name, img))))
+            idx_tup = ('set' + str(img[1:3]),'video_' + str(img[7:11]),int(img[13:-4]))
+            #print(idx_tup)
             found = False
+            #breakpoint()
             if idx_tup[0] in self.pickle_db:
                 if idx_tup[1] in self.pickle_db[idx_tup[0]]:
                     if idx_tup[2] in self.pickle_db[idx_tup[0]][idx_tup[1]]:
-                        found = True
-                        
+                        found = True  
             if not found:
+                #breakpoint()
                 #os.remove(os.path.join(self.root_dir, img))
-                print("No Ground Truth for %s",img)
+                #print("No Ground Truth for %s",img)
                 count += 1
         print("Dataset Initiated:")
         print("Annotated frames: ", len(self.dataset) - count)
