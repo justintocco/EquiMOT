@@ -73,7 +73,7 @@ class ReID(nn.Module):
         # TODO attempt to vectorize this
         for i in range(self.centers.size(0)):
             for k in range(P.size(0)):
-                L_identity += self.L[i, k] * torch.log(P(k))
+                L_identity += self.L[i, k] * torch.log(P[k])
 
         L_identity = -L_identity
         return L_identity

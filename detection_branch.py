@@ -11,7 +11,7 @@ import torchvision
 from torch.utils.data import DataLoader
 from torchvision import datasets, models, transforms
 from torch.utils.data.dataset import Dataset
-from tqdm import 
+from tqdm import tqdm
 
 """
 "Our detection branch is built on top of CenterNet (Zhou et al., 2019a) but other 
