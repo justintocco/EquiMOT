@@ -1,6 +1,4 @@
 
 
 # implement get_item in EquiDataset
-# split data up between training, validation, and testing
-# figure out how to deal with frame annotations?? not sure none showed up
 # 

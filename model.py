@@ -49,6 +49,7 @@ class Net(nn.Module):
         # currently has jake's hw5 code
         ########################################################################
         self.relu = nn.ReLU()
+        #change relu to sigmoid
         self.conv1 = nn.Conv2d(3, 4, 3, padding=1, stride=1)
         self.pool = nn.AvgPool2d(2,2)
         self.conv2 = nn.Conv2d(4,32,3,padding=1,stride=1)
@@ -103,7 +104,7 @@ def train(trainloader, net, criterion, optimizer, device, epoch):
     running_loss = 0.0
     cnt = 0
     net = net.train()
-    for images, labels in tqdm(trainloader):
+    for images, labels in trainloader:
         images = images.to(device)
         labels = labels.to(device)
         optimizer.zero_grad()
@@ -127,7 +128,7 @@ def test(testloader, net, criterion, device):
     cnt = 0
     with torch.no_grad():
         net = net.eval()
-        for images, labels in tqdm(testloader):
+        for images, labels in testloader:
             images = images.to(device)
             labels = labels.to(device)
             output = net(images)

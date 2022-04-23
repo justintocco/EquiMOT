@@ -25,6 +25,7 @@ class EquiDataset(Dataset):
         #breakpoint()
         print("before dataset")
         self.dataset = []
+        self.annotations = []
         count = 0
         print("before for loop")
         for img in self.root_dir:
@@ -43,6 +44,7 @@ class EquiDataset(Dataset):
                 count += 1
             else:
                 #breakpoint()
+                self.annotations.append(self.pickle_db[idx_tup[0]][idx_tup[1]][idx_tup[2]])
                 self.dataset.append(np.array(Image.open(os.path.join(self.root_name, img))))
         #breakpoint()
         print("Dataset Initiated:")
@@ -69,18 +71,12 @@ class EquiDataset(Dataset):
 
         
     def __len__(self):
-        breakpoint()
         return len(self.dataset)
     
     #Needs updating
     def __getitem__(self, idx):
-        breakpoint()
-        img = torch.FloatTensor(self.dataset[idx]).permute(2, 0, 1)
-        annotations = torch.LongTensor(self.q_masks[idx])[None, :, :]
-        qmask = self.transform(qmask).squeeze()
-        if self.one_hot:
-            H, W = qmask.shape
-            qmask = torch.nn.functional.one_hot(qmask.reshape(-1), len(self.group2label_idx)).reshape(H, W, -1)
-            qmask = qmask.permute(2, 0, 1)
-            assert torch.max(qmask) == 1
-        return self.transform(img), qmask
+        img = self.dataset[idx]
+        annotation = self.annotations[idx]
+        if self.transform:
+            img = self.transform(img).permute(2,0,1)
+        return img, annotation

@@ -21,9 +21,7 @@ criterion = nn.CrossEntropyLoss() # this will be the loss we create using the pa
 #breakpoint()
 # Define the dataset and dataloder
 dataset = EquiDataset(pkl_file = 'small_database.pkl',transform=transforms.ToTensor())
-train_data = None
-val_data =  None
-test_data = None
+train_data, val_data, test_data = torch.utils.data.random_split(dataset, [2500,500,475])
 
 train_loader = DataLoader(train_data, batch_size=16)
 val_loader = DataLoader(val_data, batch_size=8)
