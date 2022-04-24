@@ -40,64 +40,64 @@ One example of designing such model inspired by U-Net [1] is:
 9. Convolutional block with several Conv-ReLU layers with #channel C to N_CLASS
 """
 
-N_CLASS = 5 # MAY (not) need changing
-
 class EquiMOT(nn.Module):
     def __init__(self):
         super(EquiMOT, self).__init__()
-        self.n_class = N_CLASS
+        self.weight1 = torch.nn.Parameter(torch.tensor(0.5), requires_grad=True)
+        self.weight2 = torch.nn.Parameter(torch.tensor(0.5), requires_grad=True)
         self.encoder_decoder = nn.Sequential(
-            nn.Conv2d(3, 4, 3, padding=1, stride=1),
+            nn.Conv2d(3, 4, 3, padding=1, stride=4), #STRIDE 4? #1/4
             nn.Sigmoid(),
             nn.AvgPool2d(2,2),
-            nn.Conv2d(4,32,3,padding=1,stride=1),
+            nn.Conv2d(4,8,3,padding=1,stride=1), #1
             nn.Sigmoid(),
             nn.AvgPool2d(2,2),
-            nn.Conv2d(32,128,3,padding=1,stride=1),
+            nn.Conv2d(8,16,3,padding=1,stride=1),
             nn.Sigmoid(),
             nn.AvgPool2d(2,2),
-            nn.Conv2d(128,128,3,padding=1,stride=1),
-            nn.Upsample(scale_factor=2, mode='nearest'),
-            nn.ConvTranspose2d(128,32,3,padding=0,stride=2),
+            nn.Conv2d(16,32,3,padding=1,stride=1),
+            #nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.ConvTranspose2d(32,64,3,padding=(0,1),stride=2,output_padding=1),
             nn.Sigmoid(),
-            nn.Upsample(scale_factor=2, mode='nearest'),
-            nn.ConvTranspose2d(32,8,3,padding=0,stride=2),
+            #nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.ConvTranspose2d(64,128,3,padding=1,stride=2,output_padding=(0,1)),
             nn.Sigmoid(),
-            nn.Upsample(scale_factor=2, mode='nearest'),
-            nn.ConvTranspose2d(8,self.n_class,3,padding=0,stride=2),
+            #nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.ConvTranspose2d(128,128,3,padding=1,stride=2,output_padding=1),
             nn.Sigmoid(),
             nn.Dropout(p=0.05)
         )
-        ########################################################################
-        #                             END OF YOUR CODE                         #
-        ########################################################################
 
-    def forward(self, x, annotations):
+
+    def forward(self, x):
         #TODO I believe we might need to pass in targets
         base = self.encoder_decoder(x)
+        """
         detection = DetectionBranch()
         reid = ReID()
-        detection_output, detection_loss, centers = detection.forward(base,annotations)
-        id_output, id_loss = reid.forward(base,centers,annotations)
-        branch_outputs = (detection_output,id_output)
-        branch_losses = (detection_loss,id_loss)
-        return (branch_losses,branch_outputs)
+        detection_output, centers = detection.forward(base)
+        id_output = reid.forward(base,centers)
+        output = (detection_output,id_output)"""
+        output = base # TODO this is temp to get to run
+        return output
 
+    def loss(self, outputs, annotations):
+        '''
+        Loss function implemented inline with FairMOT description of how to
+        balance detection and ID branches.
+        '''
+        return torch.tensor(0.5, requires_grad=True)
+        """
+        #not sure if labels is needed(left as dumby for now), will explain or look into later
+        detection = DetectionBranch()
+        reid = ReID()
+        w1, w2 = None, None # TODO need to figure out how to implement learnable parameters
+        detect_loss = detection.loss() # TODO params from carlos (indexed from output)
+        id_loss = reid.loss(annotations, #ID output) # TODO params from jett (indexed from output)
+        loss = 0.5 * ((1/ np.e**w1)*detect_loss + (1/ np.e**w2)*id_loss+ w1 + w2)
+    return loss"""
 
-def loss(self, outputs, labels=None):
-    '''
-    Loss function implemented inline with FairMOT description of how to
-    balance detection and ID branches.
-    '''
-    #not sure if labels is needed(left as dumby for now), will explain or look into later
-    
-    w1, w2 = None, None # TODO need to figure out how to implement learnable parameters
-
-    #outputs[0][0] refers to detecion loss, output[0][1] refers to id_loss
-    loss = 0.5 * ((1/ np.e**w1)*outputs[0][0] + (1/ np.e**w2)*outputs[0][1]+ w1 + w2)
-    return loss
-
-def train(trainloader, net, criterion, optimizer, device, epoch):
+def train(trainloader, net, optimizer, device, epoch):
     '''
     Function for training.
     '''
@@ -105,13 +105,12 @@ def train(trainloader, net, criterion, optimizer, device, epoch):
     running_loss = 0.0
     cnt = 0
     net = net.train()
-    for images, labels, bboxes in trainloader:
+    for images, annotations in tqdm(trainloader):
         images = images.to(device)
-        labels = labels.to(device)
-        bboxes = bboxes.to(device)
+        annotations = annotations.to(device)
         optimizer.zero_grad()
         output = net(images)
-        loss = criterion(output, labels) #TODO maybe change this area to pass in images, annotations
+        loss = net.loss(outputs=output, annotations=annotations) #TODO maybe change this area to pass in images, annotations
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
@@ -131,7 +130,7 @@ def test(testloader, net, criterion, device):
     cnt = 0
     with torch.no_grad():
         net = net.eval()
-        for images, labels in testloader:
+        for images, annotations in testloader:
             images = images.to(device)
             labels = labels.to(device)
             output = net(images)

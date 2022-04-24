@@ -31,6 +31,7 @@ This result is what feeds into the detection (as well as Re-ID) branch.
 
 class DetectionBranch(nn.Module):
     def __init__(self):
+        super(DetectionBranch(), self).__init__()
         self.C = 256
         self.first_conv_layer = nn.Conv2d(self.C, 256, 3)
         self.second_conv_layer = nn.Conv2d(256, 256, 1)
@@ -50,18 +51,18 @@ class DetectionBranch(nn.Module):
         return x, loss, centers
 
 
-    def heatmap(feature_map, size, boxes, N, stdev, M):
+    def heatmap(feature_map, size, gt_boxes, N, stdev, M):
         """
         Responsible for estimating the locations of the object centers
         "The response at a location in the heatmap is expected to be one if it collapses
         with the ground-truth object center."
 
         Inputs:
-        feature_map - the output of the DLA-34 model
-        size - a tuple of ints giving the (height, width) of original image / 4
+        feature_map - the output of the encoder-decode post 2 conv layers
+        size - a tuple of ints giving the (height, width) of original image
         N - the number of objects in the image
-        boxes - an (N, 4) array of ground truth bounding boxes in the image 
-        stdev - standard deviation (TODO: is this passed in or is it calculated?)
+        gt_boxes - an (N, 4) array of ground truth bounding boxes in the image 
+        stdev - standard deviation (TODO: call stdev on the input tensor and get it passed here)
         M - real heatmap responses
 
         Notes:
@@ -78,43 +79,38 @@ class DetectionBranch(nn.Module):
         centers = torch.zeros((N, 2))
         L_heat = None
 
+        #given GT boxes:
+        #compute GT center
+        #divide GT center by stride
+        #use this to this M
+
+        
+
         #for each box in the image
         for i in range(N): #TODO: try to make this w/o loops
             #compute the object center
-            obj_center = torch.array((boxes[i][0] + boxes[i][2]) / 2, (boxes[i][1] + boxes[i][3]) / 2)
+            gt_obj_center = torch.array((gt_boxes[i][0] + gt_boxes[i][2]) / 2, (gt_boxes[i][1] + gt_boxes[i][3]) / 2)
             #location on the feature map is obtained by dividing the stride (c~i_x, c~i_y)
             on_feat_map = torch.floor(obj_center / STRIDE)
-            centers[i] = obj_center #center of ith box of object
+            gt_centers[i] = gt_obj_center #center of ith box of object
 
                 
         x_range = torch.arange(0, size[0], 1)
         y_range = torch.arange(0, size[1], 1)
         response = 0
-        #there's totally a more efficient way to do this
+        #TODO: there's totally a more efficient way to do this
         for x in range(x_range):
             for y in range(y_range):
                 for i in range(N):
-                    numerator = ((x - centers[i][0]) ** 2) + ((y - centers[i][1]) ** 2)
+                    numerator = ((x - gt_centers[i][0]) ** 2) + ((y - gt_centers[i][1]) ** 2)
                     denominator = 2 * (stdev ** 2)
                     term = -(numerator/denominator)
                     term = torch.exp(term)
                     response+=term
-                M_hat[x][y] = response
+                M[x][y] = response
                 response = 0
 
-        
-        #heatmap_est = torch.sum( torch.exp(- ((x - c_x) ** 2) + ((y - c_y) ** 2) / (2 * (stdev ** 2))) )
-
-        #alpha and beta are the pre-determined parameters in focal loss
-        alpha = 1
-        beta = 1
-        #loss function is defined as pixel-wise logistic regression with focal loss
-        loss_arrs = torch.zeros((M.shape))
-        loss_arrs[M == 1] = ((1 - M_hat) ** alpha) * np.log(M_hat)
-        loss_arrs[M != 1] = ((1 - M) ** beta) * (M_hat ** alpha) * np.log(1 - M_hat)
-        L_heat = torch.sum(loss_arrs)
-        
-        return heatmap_est, L_heat, centers
+        return M, gt_centers
 
     def size(boxes):
         """
@@ -136,6 +132,21 @@ class DetectionBranch(nn.Module):
         offset = center/4 - np.floor(center/4)
 
         return offset
+
+    def heatmap_loss(self, M, M_hat):
+        """
+        Inputs:
+        M - GT
+        M_hat - Predicted heatmap
+        """
+        #alpha and beta are the pre-determined parameters in focal loss
+        alpha = 1
+        beta = 1
+        #loss function is defined as pixel-wise logistic regression with focal loss
+        loss_arrs = torch.zeros((M.shape))
+        loss_arrs[M == 1] = ((1 - M_hat) ** alpha) * np.log(M_hat)
+        loss_arrs[M != 1] = ((1 - M) ** beta) * (M_hat ** alpha) * np.log(1 - M_hat)
+        L_heat = torch.sum(loss_arrs)
 
     def boxes_loss(boxes, centers, s, o):
         s_hat = size(boxes)

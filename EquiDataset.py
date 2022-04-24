@@ -9,6 +9,8 @@ from torch.utils.data.dataset import Dataset
 import json
 import pickle
 from data_organizer import organize
+from tqdm import tqdm
+
 
 class EquiDataset(Dataset):
     """Custom Dataset for loading into PIE data into EquiMOT."""
@@ -23,12 +25,12 @@ class EquiDataset(Dataset):
         self.root_dir = os.listdir("processed_images")
         self.transform = transform
         #breakpoint()
-        print("before dataset")
+
         self.dataset = []
         self.annotations = []
         count = 0
-        print("before for loop")
-        for img in self.root_dir:
+        print("Finding annotated frames to train...")
+        for img in tqdm(self.root_dir):
             idx_tup = ('set' + str(img[1:3]),'video_' + str(img[7:11]),int(img[13:-4]))
             #print(idx_tup)
             found = False
@@ -38,9 +40,6 @@ class EquiDataset(Dataset):
                         found = True
             #breakpoint() 
             if not found:
-                #breakpoint()
-                #os.remove(os.path.join(self.root_dir, img))
-                #print("No Ground Truth for %s",img)
                 count += 1
             else:
                 #breakpoint()
@@ -76,7 +75,27 @@ class EquiDataset(Dataset):
     #Needs updating
     def __getitem__(self, idx):
         img = self.dataset[idx]
-        annotation = self.annotations[idx]
+        annotation_array = np.zeros((16,10))
+        
+        for i, object in enumerate(self.annotations[idx]):
+            id = object['class']
+            if id == 'pedestrian':
+                id = 1
+            elif id == 'vehicle':
+                id = 2
+            elif id == 'traffic_light':
+                id = 3
+            elif id == 'sign':
+                id = 4
+            elif id == 'crosswalk':
+                id = 5
+            else:
+                id = 0
+            annotation_array[i][id] = 1  #One-hot it
+            bbox = object['bbox']
+            annotation_array[i, 6:10] = [bbox[0], bbox[1], bbox[2], bbox[3]]
+            
+        annotation = torch.from_numpy(annotation_array)
         if self.transform:
-            img = self.transform(img).permute(2,0,1)
+            img = self.transform(img)
         return img, annotation

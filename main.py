@@ -7,6 +7,7 @@ import data_loader as dl
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from EquiDataset import EquiDataset
+from torchsummary import summary
 
 if torch.cuda.is_available():
     print("Using the GPU.")
@@ -17,8 +18,7 @@ else:
 
 name = 'starter_net'
 net = model.EquiMOT().to(device)
-criterion = model.loss()
-
+summary(net, (3,1080,1920), device=device)
 # Define the dataset and dataloder
 dataset = EquiDataset(pkl_file = 'small_database.pkl',transform=transforms.ToTensor())
 train_data, val_data, test_data = torch.utils.data.random_split(dataset, [2500,500,475]) # this may need changing
@@ -29,14 +29,13 @@ test_loader = DataLoader(test_data, batch_size=1)
 
 optimizer = model.optim.Adam(net.parameters(), lr=2e-4,weight_decay=1e-5) 
 num_epoch = 80
-
 print('\nStart training')
 trn_hist = []
 val_hist = []
 net.train()
 for epoch in range(num_epoch): #TODO: Change the number of epochs
     print('-----------------Epoch = %d-----------------' % (epoch+1))
-    trn_loss = model.train(train_loader, net, criterion, optimizer, device, epoch+1)
+    trn_loss = model.train(train_loader, net, optimizer, device, epoch+1)
     print('Validation loss: ')
     val_loss = model.test(val_loader, net, criterion, device)
     trn_hist.append(trn_loss)

@@ -20,8 +20,8 @@ from torch.utils.data.dataset import Dataset
 from tqdm import tqdm
 
 
-# K = # of classes TODO confirm this is 5?
-K = 5
+# K = # of classes
+K = 6
 
 class ReID(nn.Module):
     def __init__(self):
@@ -34,7 +34,7 @@ class ReID(nn.Module):
 
         # initialize ConvNet layers
         # TODO match input layers to number of channels in backbone_map
-        self.conv = nn.Conv2d(256, 128, 3, padding=1)
+        self.conv = nn.Conv2d(128, 128, 3, padding=1)
         self.fc = nn.Linear(128, K)
 
 
@@ -49,13 +49,11 @@ class ReID(nn.Module):
                   resulting in 270x480. Assuming 256 channels for now
     centers: the centers variable from detection_branch.py.
              Size (N, 2) where N is the number of objects in the frame.
-    L: Size (N, K=5) one-hot ground truth class labels
 
     Returns:
-    P: Size (N, K=5) class distribution vector where K is the number of classes
-    L_identity: the re-ID loss
+    P: Size (N, K=6) class distribution vector where K is the number of classes
     """
-    def forward(self, backbone_map, centers, L):
+    def forward(self, backbone_map, centers):
         # initialize relu and softmax
         # TODO use sigmoid instead?
         relu = nn.ReLU()
@@ -68,7 +66,6 @@ class ReID(nn.Module):
         # N = # of GT objects in frame
         N = centers.size(0)
         P = torch.zeros(N, K)
-        L_identity = 0
         # extract re-ID feature vectors from object centers; TODO vectorize this
         for i in range(N):
             c_x, c_y = centers[i, :]
@@ -76,13 +73,27 @@ class ReID(nn.Module):
 
             vec = self.fc(vec)
             P[i] = softmax(vec)
-            L_identity += torch.sum(L[i, :] * torch.log(P[i, :]))
-            # for k in range(K):
-            #     L_identity += L[i, k] * torch.log(P[i, k])
+
+        return P
+
+
+    """
+    Inputs:
+    L: Size (N, 10) N x [6 one-hot ground truth class labels +
+       4 bounding box coords that this function ignores]
+    P: Size (N, K=6) class distribution vector where K is the number of classes
+       (calculated from forward() above)
+
+    Returns:
+    L_identity: the re-ID loss
+    """
+    def loss(L, P):
+        L_identity = -torch.sum(L[:, 0:6] * torch.log(P))
+        return L_identity
+
+        # for k in range(K):
+        #     L_identity += L[i, k] * torch.log(P[i, k])
 
         # for i in range(centers.size(0)):
         #     for k in range(P.size(0)):
         #         L_identity += L[i, k] * torch.log(P[k])
-
-        L_identity = -L_identity
-        return P, L_identity
