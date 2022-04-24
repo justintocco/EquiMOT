@@ -11,6 +11,8 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, models, transforms
 from torch.utils.data.dataset import Dataset
 from tqdm import tqdm
+from detection_branch import DetectionBranch
+from reid import ReID
 
 """ Model
 Design and implement your Convolutional NeuralNetworks to perform semantic segmentation on the MSRC-v2 dataset. 
@@ -40,62 +42,61 @@ One example of designing such model inspired by U-Net [1] is:
 
 N_CLASS = 5 # MAY (not) need changing
 
-class Net(nn.Module):
+class EquiMOT(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
+        super(EquiMOT, self).__init__()
         self.n_class = N_CLASS
-        ########################################################################
-        # TODO: Implement a sematic segmentation model                         #
-        # currently has jake's hw5 code
-        ########################################################################
-        self.relu = nn.ReLU()
-        #change relu to sigmoid
-        self.conv1 = nn.Conv2d(3, 4, 3, padding=1, stride=1)
-        self.pool = nn.AvgPool2d(2,2)
-        self.conv2 = nn.Conv2d(4,32,3,padding=1,stride=1)
-        self.conv25 = nn.Conv2d(32,128,3,padding=1,stride=1)
-        self.conv3 = nn.Conv2d(128,128,3,padding=1,stride=1)
-        self.convTrans05 = nn.ConvTranspose2d(128,32,3,padding=0,stride=2)
-        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
-        self.convTrans1 = nn.ConvTranspose2d(32,8,3,padding=0,stride=2) #TODO: FIGURE OUT TRUE N_CLASS? (HOW TO FIND?)
-        self.convTrans2 = nn.ConvTranspose2d(8,self.n_class,3,padding=0,stride=2)
-        self.drop = nn.Dropout(p=0.05)
-        ########################################################################
-        #                             END OF YOUR CODE                         #
-        ########################################################################
-
-    def forward(self, x):
-        ########################################################################
-        # TODO: Implement the forward pass                                     #
-        ########################################################################
-        x = self.pool(self.relu(self.conv1(x)))
-        x = self.pool(self.relu(self.conv2(x))) 
-        x = self.pool(self.relu(self.conv25(x)))
-        x = self.conv3(x)
-        x = self.upsample(x)
-        x = self.relu(self.convTrans05(x))
-        x = self.upsample(x)
-        x = self.relu(self.convTrans1(x))
-        x = self.upsample(x)
-        x = self.relu(self.convTrans2(x))
-        x = self.drop(x)
+        self.encoder_decoder = nn.Sequential(
+            nn.Conv2d(3, 4, 3, padding=1, stride=1),
+            nn.Sigmoid(),
+            nn.AvgPool2d(2,2),
+            nn.Conv2d(4,32,3,padding=1,stride=1),
+            nn.Sigmoid(),
+            nn.AvgPool2d(2,2),
+            nn.Conv2d(32,128,3,padding=1,stride=1),
+            nn.Sigmoid(),
+            nn.AvgPool2d(2,2),
+            nn.Conv2d(128,128,3,padding=1,stride=1),
+            nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.ConvTranspose2d(128,32,3,padding=0,stride=2),
+            nn.Sigmoid(),
+            nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.ConvTranspose2d(32,8,3,padding=0,stride=2),
+            nn.Sigmoid(),
+            nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.ConvTranspose2d(8,self.n_class,3,padding=0,stride=2),
+            nn.Sigmoid(),
+            nn.Dropout(p=0.05)
+        )
         ########################################################################
         #                             END OF YOUR CODE                         #
         ########################################################################
-        return x
 
-"""
-#maybe move this code to init
-# Initialize model
-name = 'starter_net'
-net = Net().to(device) 
-# visualizing the model
-print('Your network:')
-summary(net, (3,112,112), device=device)
-"""
+    def forward(self, x, annotations):
+        #TODO I believe we might need to pass in targets
+        base = self.encoder_decoder(x)
+        detection = DetectionBranch()
+        reid = ReID()
+        detection_output, detection_loss, centers = detection.forward(base,annotations)
+        id_output, id_loss = reid.forward(base,centers,annotations)
+        branch_outputs = (detection_output,id_output)
+        branch_losses = (detection_loss,id_loss)
+        return (branch_losses,branch_outputs)
 
 
-#Train model
+def loss(self, outputs, labels=None):
+    '''
+    Loss function implemented inline with FairMOT description of how to
+    balance detection and ID branches.
+    '''
+    #not sure if labels is needed(left as dumby for now), will explain or look into later
+    
+    w1, w2 = None, None # TODO need to figure out how to implement learnable parameters
+
+    #outputs[0][0] refers to detecion loss, output[0][1] refers to id_loss
+    loss = 0.5 * ((1/ np.e**w1)*outputs[0][0] + (1/ np.e**w2)*outputs[0][1]+ w1 + w2)
+    return loss
+
 def train(trainloader, net, criterion, optimizer, device, epoch):
     '''
     Function for training.
@@ -104,12 +105,13 @@ def train(trainloader, net, criterion, optimizer, device, epoch):
     running_loss = 0.0
     cnt = 0
     net = net.train()
-    for images, labels in trainloader:
+    for images, labels, bboxes in trainloader:
         images = images.to(device)
         labels = labels.to(device)
+        bboxes = bboxes.to(device)
         optimizer.zero_grad()
         output = net(images)
-        loss = criterion(output, labels)
+        loss = criterion(output, labels) #TODO maybe change this area to pass in images, annotations
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
@@ -119,6 +121,7 @@ def train(trainloader, net, criterion, optimizer, device, epoch):
     print('\n [epoch %d] loss: %.3f elapsed time %.3f' %
         (epoch, running_loss, end-start))
     return running_loss
+
 
 def test(testloader, net, criterion, device):
     '''
@@ -137,6 +140,7 @@ def test(testloader, net, criterion, device):
             cnt += 1
     print('\n',losses / cnt)
     return (losses/cnt)
+
 
 #left this function in incase we want to visualize the accuracy
 def plot_hist(trn_hist, val_hist):
