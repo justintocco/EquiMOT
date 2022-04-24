@@ -16,7 +16,7 @@ else:
     device = 'cpu'
 
 name = 'starter_net'
-net = model.Net().to(device)
+net = model.EquiMOT().to(device)
 criterion = nn.CrossEntropyLoss() # this will be the loss we create using the parallel heads for tracking and detection
 #breakpoint()
 # Define the dataset and dataloder

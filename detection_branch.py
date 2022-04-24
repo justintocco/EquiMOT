@@ -31,16 +31,23 @@ W = width of original image / 4
 This result is what feeds into the detection (as well as Re-ID) branch.
 """
 
-class detection_branch(nn.Module):
+class DetectionBranch(nn.Module):
     def __init__(self):
         self.C = 256
-
+        self.first_conv_layer = nn.Conv2d(self.C, 256, 3)
+        self.second_conv_layer = nn.Conv2d(256, 256, 1)
 
     """Each head is implemented by applying a 3 * 3 convolution (with 256 channels) to the output features of DLA-34, 
     followed by a 1 * 1 convolutional layer which generates the final targets." - 4.2 """
 
-    self.first_conv_layer = nn.Conv2d(self.C, 256, 3)
-    self.second_conv_layer = nn.Conv2d(256, 256, 1)
+
+    def forward(self, x):
+        #TODO Implement forward pass
+        # not sure yet what x should be but general setup
+        heatmap, heatmap_loss = self.heatmap(feature_map, size, boxes, N, stdev, M)
+        boxes_loss =  self.boxes_loss(boxes, centers, s, o)
+        loss = heatmap_loss + boxes_loss
+        return x, loss
 
 
     def heatmap(feature_map, size, boxes, N, stdev, M):
@@ -130,7 +137,7 @@ class detection_branch(nn.Module):
 
         return offset
 
-    def bbox(boxes, centers, s, o):
+    def boxes_loss(boxes, centers, s, o):
         s_hat = size(boxes)
         o_hat = box_offset(centers)
         lamba = 0.1 #set to this in the original CenterNet
@@ -138,6 +145,9 @@ class detection_branch(nn.Module):
         #TODO: can you use numpy in tensor operations?
         L_box = torch.sum(np.linalg.norm(o - o_hat, ord=1) + (lamba * np.linalg.norm(s - s_hat, ord=1)))
         return L_box
+
+
+
 
     
 
