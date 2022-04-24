@@ -3,3 +3,4 @@ PIE/images
 PIE/data_cache
 PIE/annotations*
 small_database.pkl
+config.json
