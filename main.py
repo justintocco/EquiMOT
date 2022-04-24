@@ -37,7 +37,7 @@ for epoch in range(num_epoch): #TODO: Change the number of epochs
     print('-----------------Epoch = %d-----------------' % (epoch+1))
     trn_loss = model.train(train_loader, net, optimizer, device, epoch+1)
     print('Validation loss: ')
-    val_loss = model.test(val_loader, net, criterion, device)
+    val_loss = model.test(val_loader, net, device)
     trn_hist.append(trn_loss)
     val_hist.append(val_loss)
 

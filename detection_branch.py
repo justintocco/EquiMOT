@@ -32,9 +32,10 @@ This result is what feeds into the detection (as well as Re-ID) branch.
 class DetectionBranch(nn.Module):
     def __init__(self):
         super(DetectionBranch(), self).__init__()
-        self.C = 256
-        self.first_conv_layer = nn.Conv2d(self.C, 256, 3)
-        self.second_conv_layer = nn.Conv2d(256, 256, 1)
+        self.C = 128
+        self.first_conv_layer = nn.Conv2d(self.C, 64, 3, padding=1)
+        self.second_conv_layer = nn.Conv2d(64, 16, 3, padding=1)
+        self.third_conv_layer = nn.Conv2d(16, 1, 1)
 
     """Each head is implemented by applying a 3 * 3 convolution (with 256 channels) to the output features of DLA-34, 
     followed by a 1 * 1 convolutional layer which generates the final targets." - 4.2 """
@@ -45,10 +46,11 @@ class DetectionBranch(nn.Module):
         # not sure yet what x should be but general setup
         x = self.first_conv_layer(x)
         x = self.second_conv_layer(x)
-        heatmap, heatmap_loss, centers = self.heatmap(feature_map, size, boxes, N, stdev, M)
-        boxes_loss =  self.boxes_loss(boxes, centers, s, o)
-        loss = heatmap_loss + boxes_loss
-        return x, loss, centers
+        x = self.third_conv_layer(x)
+        #heatmap, heatmap_loss, centers = self.heatmap(feature_map, size, boxes, N, stdev, M)
+        #boxes_loss =  self.boxes_loss(boxes, centers, s, o)
+        #loss = heatmap_loss + boxes_loss
+        return x
 
 
     def heatmap(feature_map, size, gt_boxes, N, stdev, M):
@@ -125,7 +127,6 @@ class DetectionBranch(nn.Module):
 
     def box_offset(centers):
         """
-        
         Output: S_hat in the set of R^(2 * H * W)
         """
         offset = torch.array(centers.shape[0], 1)
@@ -156,10 +157,3 @@ class DetectionBranch(nn.Module):
         #TODO: can you use numpy in tensor operations?
         L_box = torch.sum(np.linalg.norm(o - o_hat, ord=1) + (lamba * np.linalg.norm(s - s_hat, ord=1)))
         return L_box
-
-
-
-
-    
-
-

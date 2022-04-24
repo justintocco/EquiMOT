@@ -45,6 +45,9 @@ class EquiMOT(nn.Module):
         super(EquiMOT, self).__init__()
         self.weight1 = torch.nn.Parameter(torch.tensor(0.5), requires_grad=True)
         self.weight2 = torch.nn.Parameter(torch.tensor(0.5), requires_grad=True)
+        # self.tester = nn.Sequential(
+        #     nn.AvgPool2d(10, 10)
+        # )
         self.encoder_decoder = nn.Sequential(
             nn.Conv2d(3, 4, 3, padding=1, stride=4), #STRIDE 4? #1/4
             nn.Sigmoid(),
@@ -72,6 +75,7 @@ class EquiMOT(nn.Module):
     def forward(self, x):
         #TODO I believe we might need to pass in targets
         base = self.encoder_decoder(x)
+        #base = self.tester(x)
         """
         detection = DetectionBranch()
         reid = ReID()
@@ -122,7 +126,7 @@ def train(trainloader, net, optimizer, device, epoch):
     return running_loss
 
 
-def test(testloader, net, criterion, device):
+def test(testloader, net, device):
     '''
     Function for testing.
     '''
@@ -132,9 +136,9 @@ def test(testloader, net, criterion, device):
         net = net.eval()
         for images, annotations in testloader:
             images = images.to(device)
-            labels = labels.to(device)
+            annotations = annotations.to(device)
             output = net(images)
-            loss = criterion(output, labels)
+            loss = net.loss(outputs=output, annotations=annotations)
             losses += loss.item()
             cnt += 1
     print('\n',losses / cnt)
