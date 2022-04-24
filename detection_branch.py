@@ -41,13 +41,13 @@ class DetectionBranch(nn.Module):
     followed by a 1 * 1 convolutional layer which generates the final targets." - 4.2 """
 
 
-    def forward(self, x):
+    def forward(self, x, annotations):
         #TODO Implement forward pass
         # not sure yet what x should be but general setup
-        heatmap, heatmap_loss = self.heatmap(feature_map, size, boxes, N, stdev, M)
+        heatmap, heatmap_loss, centers = self.heatmap(feature_map, size, boxes, N, stdev, M)
         boxes_loss =  self.boxes_loss(boxes, centers, s, o)
         loss = heatmap_loss + boxes_loss
-        return x, loss
+        return x, loss, centers
 
 
     def heatmap(feature_map, size, boxes, N, stdev, M):
@@ -114,7 +114,7 @@ class DetectionBranch(nn.Module):
         loss_arrs[M != 1] = ((1 - M) ** beta) * (M_hat ** alpha) * np.log(1 - M_hat)
         L_heat = torch.sum(loss_arrs)
         
-        return heatmap_est, L_heat
+        return heatmap_est, L_heat, centers
 
     def size(boxes):
         """

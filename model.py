@@ -72,12 +72,13 @@ class EquiMOT(nn.Module):
         #                             END OF YOUR CODE                         #
         ########################################################################
 
-    def forward(self, x):
+    def forward(self, x, annotations):
+        #TODO I believe we might need to pass in targets
         base = self.encoder_decoder(x)
         detection = DetectionBranch()
         reid = ReID()
-        detection_output, detection_loss = detection.forward(base)
-        id_output, id_loss = reid.forward(base)
+        detection_output, detection_loss, centers = detection.forward(base,annotations)
+        id_output, id_loss = reid.forward(base,centers,annotations)
         branch_outputs = (detection_output,id_output)
         branch_losses = (detection_loss,id_loss)
         return (branch_losses,branch_outputs)
@@ -89,6 +90,7 @@ def loss(self, outputs, labels=None):
     balance detection and ID branches.
     '''
     #not sure if labels is needed(left as dumby for now), will explain or look into later
+    
     w1, w2 = None, None # TODO need to figure out how to implement learnable parameters
 
     #outputs[0][0] refers to detecion loss, output[0][1] refers to id_loss
@@ -109,7 +111,7 @@ def train(trainloader, net, criterion, optimizer, device, epoch):
         bboxes = bboxes.to(device)
         optimizer.zero_grad()
         output = net(images)
-        loss = criterion(output, labels)
+        loss = criterion(output, labels) #TODO maybe change this area to pass in images, annotations
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
