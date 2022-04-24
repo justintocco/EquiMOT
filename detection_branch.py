@@ -19,8 +19,6 @@ anchor-free methods such as (Duan et al., 2019; Law and Deng, 2018; Dong et al.,
 Yang et al., 2019) can also be used. We briefly describe the ap- proach to make this work self-contained. 
 In particular, three parallel heads are appended to DLA-34 to estimate heatmaps, 
 object center offsets and bounding box sizes, respectively. 
-
-
 """
 
 """
@@ -44,6 +42,8 @@ class DetectionBranch(nn.Module):
     def forward(self, x, annotations):
         #TODO Implement forward pass
         # not sure yet what x should be but general setup
+        x = self.first_conv_layer(x)
+        x = self.second_conv_layer(x)
         heatmap, heatmap_loss, centers = self.heatmap(feature_map, size, boxes, N, stdev, M)
         boxes_loss =  self.boxes_loss(boxes, centers, s, o)
         loss = heatmap_loss + boxes_loss

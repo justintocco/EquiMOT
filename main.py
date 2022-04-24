@@ -17,11 +17,11 @@ else:
 
 name = 'starter_net'
 net = model.EquiMOT().to(device)
-criterion = nn.CrossEntropyLoss() # this will be the loss we create using the parallel heads for tracking and detection
-#breakpoint()
+criterion = model.loss()
+
 # Define the dataset and dataloder
 dataset = EquiDataset(pkl_file = 'small_database.pkl',transform=transforms.ToTensor())
-train_data, val_data, test_data = torch.utils.data.random_split(dataset, [2500,500,475])
+train_data, val_data, test_data = torch.utils.data.random_split(dataset, [2500,500,475]) # this may need changing
 
 train_loader = DataLoader(train_data, batch_size=16)
 val_loader = DataLoader(val_data, batch_size=8)
