@@ -21,14 +21,14 @@ net = model.EquiMOT().to(device)
 summary(net, (3,1080,1920), device=device)
 # Define the dataset and dataloder
 dataset = EquiDataset(pkl_file = 'small_database.pkl',transform=transforms.ToTensor())
-train_data, val_data, test_data = torch.utils.data.random_split(dataset, [2500,500,475]) # this may need changing
+train_data, val_data, test_data = torch.utils.data.random_split(dataset, [200,200,3075]) # this may need changing
 
-train_loader = DataLoader(train_data, batch_size=16)
+train_loader = DataLoader(train_data, batch_size=8)
 val_loader = DataLoader(val_data, batch_size=8)
 test_loader = DataLoader(test_data, batch_size=1)
 
-optimizer = model.optim.Adam(net.parameters(), lr=2e-4,weight_decay=1e-5) 
-num_epoch = 80
+optimizer = model.optim.Adam(net.parameters(), lr=1e-2,weight_decay=1e-5) 
+num_epoch = 12
 print('\nStart training')
 trn_hist = []
 val_hist = []
@@ -44,8 +44,8 @@ for epoch in range(num_epoch): #TODO: Change the number of epochs
 net.eval()
 model.plot_hist(trn_hist, val_hist)
 print('\nFinished Training, Testing on test set')
-model.test(test_loader, net, criterion, device)
-print('\nGenerating Unlabeled Result')
+#model.test(test_loader, net, criterion, device)
+#print('\nGenerating Unlabeled Result')
 
 #TODO not sure what these two lines do yet lol (some sort of saving the model)
 os.makedirs('./models', exist_ok=True)

@@ -13,6 +13,7 @@ from torch.utils.data.dataset import Dataset
 from tqdm import tqdm
 from detection_branch import DetectionBranch
 from reid import ReID
+from scipy.signal import argrelextrema
 
 """ Model
 Design and implement your Convolutional NeuralNetworks to perform semantic segmentation on the MSRC-v2 dataset. 
@@ -76,13 +77,17 @@ class EquiMOT(nn.Module):
         #TODO I believe we might need to pass in targets
         base = self.encoder_decoder(x)
         #base = self.tester(x)
-        """
         detection = DetectionBranch()
         reid = ReID()
-        detection_output, centers = detection.forward(base)
+        detection_output = detection.forward(base)
+        np_det = detection_output.detach().numpy()
+        np_det = np_det[1][1]
+
+        centers = np.dstack(np.unravel_index(np.argsort(np_det.ravel()), (270, 480)))[0,-16:,:]
+
         id_output = reid.forward(base,centers)
-        output = (detection_output,id_output)"""
-        output = base # TODO this is temp to get to run
+        output = (detection_output,id_output)
+        #output = base # TODO this is temp to get to run
         return output
 
     def loss(self, outputs, annotations):
@@ -90,16 +95,33 @@ class EquiMOT(nn.Module):
         Loss function implemented inline with FairMOT description of how to
         balance detection and ID branches.
         '''
-        return torch.tensor(0.5, requires_grad=True)
-        """
+        #return torch.tensor(0.5, requires_grad=True)
+        
         #not sure if labels is needed(left as dumby for now), will explain or look into later
         detection = DetectionBranch()
         reid = ReID()
-        w1, w2 = None, None # TODO need to figure out how to implement learnable parameters
-        detect_loss = detection.loss() # TODO params from carlos (indexed from output)
-        id_loss = reid.loss(annotations, #ID output) # TODO params from jett (indexed from output)
-        loss = 0.5 * ((1/ np.e**w1)*detect_loss + (1/ np.e**w2)*id_loss+ w1 + w2)
-    return loss"""
+
+        detect_loss = 0
+        for i, img in enumerate(outputs[0]):
+            # Count number of actually annotated items
+            num_objects = 0
+            for item in annotations[i]:
+                if item[8] >= 1:
+                    num_objects += 1
+            M, feat_centers = detection.heatmap(size=[270,480], gt_boxes=(annotations[i,:,-4:]), N=num_objects, stdev=1)
+            #print(img.size())
+            detect_loss += detection.heatmap_loss(M=M, M_hat=(img[0]), feat_centers=feat_centers) # TODO params from carlos (indexed from output)
+        
+        id_loss = 0.5
+        '''
+        for i, img in enumerate(outputs[1]):
+            print(annotations[i,:,:6])
+            id_loss = nn.CrossEntropyLoss(img[i], annotations[i,:,:6]) # TODO params from jett (indexed from output)
+        '''
+        loss = 0.5 * ((1/ np.e**self.weight1)*detect_loss + (1/ np.e**self.weight2)*id_loss+ self.weight1 + self.weight2)
+        
+        return loss
+        
 
 def train(trainloader, net, optimizer, device, epoch):
     '''

@@ -25,7 +25,7 @@ K = 6
 
 class ReID(nn.Module):
     def __init__(self):
-        # super(Net, self).__init__()
+        super().__init__()
         # self.n_class = N_CLASS
 
         # self.backbone_map = torch.zeros(256, 270, 480)
@@ -35,7 +35,9 @@ class ReID(nn.Module):
         # initialize ConvNet layers
         # TODO match input layers to number of channels in backbone_map
         self.conv = nn.Conv2d(128, 128, 3, padding=1)
-        self.fc = nn.Linear(128, K)
+        self.conv2 = nn.Conv2d(128, 64, 3, padding=1)
+        self.conv3 = nn.Conv2d(64, 24, 3, padding=1)
+        self.conv4 = nn.Conv2d(24, 6, 3, padding=1)
 
 
     """
@@ -57,24 +59,37 @@ class ReID(nn.Module):
         # initialize relu and softmax
         # TODO use sigmoid instead?
         relu = nn.ReLU()
-        softmax = nn.Softmax(dim=0)
+        softmax = nn.Softmax(dim=1)
 
+        E = self.conv(backbone_map)
+        E = relu(E)
+        E = self.conv2(E)
+        E = relu(E)
+        E = self.conv3(E)
+        E = relu(E)
+        E = self.conv4(E)
+        E = relu(E)
+        E = softmax(E)
+
+        '''
         # convolution layer
         E = self.conv(backbone_map)
         E = relu(E)
 
         # N = # of GT objects in frame
-        N = centers.size(0)
+        N = centers.shape[0]
         P = torch.zeros(N, K)
         # extract re-ID feature vectors from object centers; TODO vectorize this
         for i in range(N):
             c_x, c_y = centers[i, :]
-            vec = E[:, c_y, c_x]
+            print(E.shape)
+            vec = E[:,:, c_x, c_y]
 
             vec = self.fc(vec)
             P[i] = softmax(vec)
+        '''
 
-        return P
+        return E
 
 
     """
