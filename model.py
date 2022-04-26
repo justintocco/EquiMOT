@@ -14,6 +14,10 @@ from tqdm import tqdm
 from detection_branch import DetectionBranch
 from reid import ReID
 from scipy.signal import argrelextrema
+import os
+import sys
+
+np.set_printoptions(threshold=sys.maxsize)
 
 """ Model
 Design and implement your Convolutional NeuralNetworks to perform semantic segmentation on the MSRC-v2 dataset. 
@@ -81,9 +85,11 @@ class EquiMOT(nn.Module):
         reid = ReID()
         detection_output = detection.forward(base)
         np_det = detection_output.detach().numpy()
-        np_det = np_det[1][1]
+        #np_det = np_det[1][1]
+        np_det = np_det[0][1]
 
         centers = np.dstack(np.unravel_index(np.argsort(np_det.ravel()), (270, 480)))[0,-16:,:]
+        print(centers)
 
         id_output = reid.forward(base,centers)
         output = (detection_output,id_output)
@@ -165,6 +171,36 @@ def test(testloader, net, device):
             cnt += 1
     print('\n',losses / cnt)
     return (losses/cnt)
+
+
+def get_result(eval_set, net, device, folder='output_train'):
+    print("HEATMAPS:")
+    result = []
+    cnt = 1
+    os.makedirs(folder, exist_ok=True)
+    with torch.no_grad():
+        net = net.eval()
+        cnt = 0
+        for image, annotation in eval_set:
+            image = image.to(device)
+            output = net(image)[0].cpu().numpy()
+            heatmap = output[0][2]
+           # print(output)
+            print(heatmap)
+            print("----------")
+            fname = folder + '/heatmap' + str(cnt) + '.png'
+            plt.imsave(fname, heatmap, cmap='hot')
+
+
+
+            # assert(c == N_CLASS)
+            # y = np.argmax(output, 0).astype('uint8')
+            # gt = labels.cpu().data.numpy().squeeze(0).astype('uint8')
+            # save_label(y, './{}/y{}.png'.format(folder, cnt))
+            # save_label(gt, './{}/gt{}.png'.format(folder, cnt))
+            # plt.imsave('./{}/x{}.png'.format(folder, cnt),
+            #          images[0].cpu().data.numpy().astype(np.uint8).transpose(1,2,0))
+            cnt += 1
 
 
 #left this function in incase we want to visualize the accuracy

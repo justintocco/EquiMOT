@@ -27,11 +27,6 @@ class ReID(nn.Module):
     def __init__(self):
         super().__init__()
         # self.n_class = N_CLASS
-
-        # self.backbone_map = torch.zeros(256, 270, 480)
-        # self.centers = torch.zeros(5, 2)
-        # self.L = torch.zeros(10, 10)
-
         # initialize ConvNet layers
         # TODO match input layers to number of channels in backbone_map
         self.conv = nn.Conv2d(128, 128, 3, padding=1)
@@ -56,11 +51,8 @@ class ReID(nn.Module):
     P: Size (N, K=6) class distribution vector where K is the number of classes
     """
     def forward(self, backbone_map, centers):
-        # initialize relu and softmax
-        # TODO use sigmoid instead?
         relu = nn.ReLU()
         softmax = nn.Softmax(dim=1)
-
         E = self.conv(backbone_map)
         E = relu(E)
         E = self.conv2(E)

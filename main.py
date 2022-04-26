@@ -41,12 +41,14 @@ for epoch in range(num_epoch): #TODO: Change the number of epochs
     trn_hist.append(trn_loss)
     val_hist.append(val_loss)
 
+#TODO not sure what these two lines do yet lol (some sort of saving the model)
+os.makedirs('./models', exist_ok=True)
+torch.save(net.state_dict(), './models/model_skiplink_{}.pth'.format(name))
+
 net.eval()
 model.plot_hist(trn_hist, val_hist)
 print('\nFinished Training, Testing on test set')
 #model.test(test_loader, net, criterion, device)
 #print('\nGenerating Unlabeled Result')
 
-#TODO not sure what these two lines do yet lol (some sort of saving the model)
-os.makedirs('./models', exist_ok=True)
-torch.save(net.state_dict(), './models/model_skiplink_{}.pth'.format(name))
+

@@ -39,9 +39,6 @@ class DetectionBranch(nn.Module):
         self.second_conv_layer = nn.Conv2d(64, 16, 3, padding=1)
         self.third_conv_layer = nn.Conv2d(16, 5, 1)
 
-    """Each head is implemented by applying a 3 * 3 convolution (with 256 channels) to the output features of DLA-34, 
-    followed by a 1 * 1 convolutional layer which generates the final targets." - 4.2 """
-
 
     def forward(self, x):
         #TODO Implement forward pass
